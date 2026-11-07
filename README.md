@@ -353,3 +353,6 @@ python3 -m unittest discover -s tests -v
 
 这是一个 copyleft 许可：你可以自由使用、修改、分发，但**分发修改后的版本时必须以 GPL-3.0 开源**。
 内部使用、私有部署没有任何限制。若不希望受 copyleft 约束，请联系作者讨论其他授权方式。
+
+## 人类的话
+deepseek太好用啦！
