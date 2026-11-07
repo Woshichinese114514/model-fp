@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """指纹对比：分组打分、置信度、结论与可疑点。"""
 
 from __future__ import annotations

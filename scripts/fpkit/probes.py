@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """探针定义与执行。
 
 硬性约束：所有探针都是"小输入"——

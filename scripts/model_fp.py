@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """model-fp 命令行入口。
 
 用法：

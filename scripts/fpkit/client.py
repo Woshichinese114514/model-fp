@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """model-fp 传输层：仅用 Python 标准库，兼容 OpenAI / DeepSeek / Anthropic 风格端点。
 
 设计要点

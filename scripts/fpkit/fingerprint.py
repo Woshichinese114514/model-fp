@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """指纹对象：构建、规范化、稳定哈希、读写。"""
 
 from __future__ import annotations

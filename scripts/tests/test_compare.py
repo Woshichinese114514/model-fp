@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """离线单测：只验证打分/结论逻辑，不发任何网络请求。"""
 
 import os

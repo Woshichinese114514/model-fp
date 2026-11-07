@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Woshichinese114514
+
 """命令行入口：probe / compare / matrix / verify / models。"""
 
 from __future__ import annotations
