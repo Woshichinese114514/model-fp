@@ -154,7 +154,7 @@ echo $?   # 0 = 通过；1 = 漂移
 | `--threshold` | verify 通过阈值 | 0.90 |
 
 ```bash
-# 只跑身份 + 词表，约 18 个请求
+# 只跑身份 + 词表：19 个请求（含 identity 的 2 次取样）
 python3 scripts/model_fp.py probe --base-url https://relay/v1 --model deepseek-chat \
   --groups metadata,identity,tokenizer
 ```
