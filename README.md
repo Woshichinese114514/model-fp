@@ -163,13 +163,35 @@ python3 scripts/model_fp.py probe --base-url https://relay/v1 --model deepseek-c
 
 | 组 | 探针内容 | 请求 | 主要分辨什么 |
 |---|---|---|---|
-| identity | `system_fingerprint`、响应 id 格式、`model` 回显、**隐藏提示词开销** | 4~6 | 是否同一个后端 / 同一份服务端配置 |
-| tokenizer | 14 个短串在 `/beta/completions` 下的 `prompt_tokens` 向量 | 15 | 词表差异（换模型/换家族） |
+| identity | `system_fingerprint`、响应 id 格式、`model` 回显、**隐藏提示词开销** | 0（派生） | 是否同一个后端 / 同一份服务端配置 |
+| tokenizer | 14 个短串在 `/beta/completions` 下的 `prompt_tokens` 向量 | 14 | 词表差异（换模型/换家族） |
 | first_step | 固定前缀、温度 0 的 `top_logprobs`（推理首 token） | 4 | 权重差异（同词表也能分辨） |
 | continuation | 温度 0 续写文本 + 推理前缀（只比稳定前缀） | 6 | 版本 / 量化差异 |
-| protocol | SSE 分块字段、`json_object`、`tools`、FIM、Anthropic 兼容面、usage 字段 | 7 | 网关 / 推理框架改写 |
-| metadata | `/models` 全字段、`/user/balance`、错误模板 | 4 | 官方端点 vs 中转 |
+| protocol | SSE 分块字段、`json_object`、`tools`、FIM、Anthropic 兼容面、usage 字段 | 5 | 网关 / 推理框架改写 |
+| metadata | `/models` 全字段、`/user/balance`、错误模板 | 3 | 官方端点 vs 中转 |
 | determinism | 同请求两次是否逐字一致 | 2 | 采样层 / 缓存层 |
+
+### 请求账本（合计 34）
+
+| 探针 | 请求 | 说明 |
+|---|---|---|
+| metadata.models | 1 | 前缀探测的 `GET /models` 被复用，不重复发 |
+| metadata.balance | 1 | `/user/balance` |
+| metadata.error_shape | 1 | 用不存在的模型名触发 400，取错误模板 |
+| protocol.stream | 1 | SSE 分块 |
+| protocol.json_object | 1 | `response_format` |
+| protocol.tools | 1 | 单个函数工具 |
+| protocol.fim | 1 | `/beta/completions` + `suffix` |
+| protocol.anthropic | 1 | `/anthropic/v1/messages`（不支持时 +1~3 次路径兜底） |
+| tokenizer | 14 | 14 个短串各 1 次；端点无 `/beta` 时改用 chat，仍 14 次 |
+| first_step | 4 | 4 个固定前缀 |
+| continuation | 6 | 4 次裸续写 + 2 次推理前缀 |
+| identity | 0 | **派生组**：从上面这些响应里提取，不单独发请求 |
+| determinism | 2 | 同一请求发两次 |
+| **合计** | **34** | 与指纹里的 `cost.requests` 和 `audit` 长度一致 |
+
+> `identity` 单独跑（`--groups identity`）时会临时发 2 个 chat 请求取样；与其他组一起跑则完全复用已有响应。
+
 
 其中 **隐藏提示词开销** 是实测最好用的一项：同一段文本，chat 请求的 `prompt_tokens`
 减去裸 completion 的计数，得到的差值 = chat 模板 + 服务端注入的隐藏 system prompt。
@@ -179,9 +201,10 @@ python3 scripts/model_fp.py probe --base-url https://relay/v1 --model deepseek-c
 
 | 模式 | 请求数 | prompt tokens | 输出 tokens | 耗时 |
 |---|---|---|---|---|
-| 完整探测（7 组） | 34 | ~840 | ~80 | 25~35s |
-| 精简探测（metadata+identity+tokenizer） | ~18 | ~500 | ~20 | 10~15s |
-| `verify` 回归一次 | 34 | ~840 | ~80 | 25~35s |
+| 完整探测（7 组） | 34 | ~840 | ~86 | 25~35s |
+| 精简 `--groups metadata,tokenizer` | 17 | ~64 | ~14 | 10~13s |
+| 精简 `--groups metadata,identity,tokenizer` | 19 | ~144 | ~45 | 12~15s |
+| `verify` 回归一次 | 34 | ~840 | ~86 | 25~35s |
 
 按 DeepSeek 现价，一轮完整探测的成本在**分币级**；指纹里的 `audit` 可以直接对账。
 

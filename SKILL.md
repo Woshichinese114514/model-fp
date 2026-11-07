@@ -50,22 +50,24 @@ key 来源优先级：`--api-key` > 环境变量（MODEL_FP_API_KEY / DEEPSEEK_A
 | verify | 现场探测 + 比基线，按阈值给退出码（接 cron） |
 | models | 列出端点模型清单 |
 
-常用参数：`--groups identity,tokenizer`（只跑部分组，约 18 个请求）、
+常用参数：`--groups metadata,tokenizer`（17 个请求；再加 identity 为 19 个）、
 `--all-models`、`--max-requests`（成本上限）、`--target official`（读 config.json）。
 
 ## 测了哪些指纹
 
 | 组 | 信号 | 请求 | 分辨力 |
 |---|---|---|---|
-| identity | system_fingerprint、响应 id 格式、model 回显、**隐藏提示词开销** | 4~6 | 同后端最强 |
-| tokenizer | 14 个短串在 /beta/completions 的 prompt_tokens 向量 | 15 | 换词表立刻现形 |
+| identity | system_fingerprint、响应 id 格式、model 回显、**隐藏提示词开销** | 0（派生） | 同后端最强 |
+| tokenizer | 14 个短串在 /beta/completions 的 prompt_tokens 向量 | 14 | 换词表立刻现形 |
 | first_step | 固定前缀温度 0 的 top_logprobs（推理首 token） | 4 | 换权重会变 |
 | continuation | 温度 0 续写文本 + 推理前缀（只比稳定前缀） | 6 | 换量化/版本会分叉 |
-| protocol | SSE 字段、json_object、tools、FIM、Anthropic 面、usage 字段 | 7 | 网关改写会暴露 |
-| metadata | /models 全字段、/user/balance、错误模板 | 4 | 官方 vs 中转 |
+| protocol | SSE 字段、json_object、tools、FIM、Anthropic 面、usage 字段 | 5 | 网关改写会暴露 |
+| metadata | /models 全字段、/user/balance、错误模板 | 3 | 官方 vs 中转 |
 | determinism | 同请求两次是否逐字一致 | 2 | 采样/缓存层 |
 
-成本：一轮 **34 个请求 ≈ 840 prompt tokens / 80 completion tokens / 25~35 秒**。
+成本：一轮 **34 个请求 ≈ 840 prompt tokens / 86 completion tokens / 25~35 秒**。
+
+> identity 是派生组（0 个请求），从其他探针响应里提取；单独跑该组时才会额外发 2 个 chat 请求取样。逐笔账本见 README「请求账本」。
 单请求 prompt 按构造 ≤ 64 token、输出 ≤ 16 token；指纹里的 `audit` 字段逐条记录用量。
 
 ## 怎么读结论

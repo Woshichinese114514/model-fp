@@ -73,3 +73,23 @@ low 时 "same/family" 结论自动降级为 "related"。
 2. 自定义逻辑（多请求、依赖前一个结果）就写 `run_xxx(ctx)`，在 `run_all()` 里挂上。
 3. 在 `fpkit/compare.py` 加 `score_xxx()`，注册进 `SCORERS`，并调整 `DEFAULT_WEIGHTS`（和为 1）。
 4. 补 `tests/test_compare.py` 的用例：同数据得 1.0、关键差异被扣分、缺组能重归一化。
+
+## 请求数账本（合计 34）
+
+| 探针 | 请求 |
+|---|---|
+| metadata.models（复用前缀探测的 GET /models） | 1 |
+| metadata.balance | 1 |
+| metadata.error_shape | 1 |
+| protocol.stream / json_object / tools / fim | 1 + 1 + 1 + 1 |
+| protocol.anthropic（路径兜底时 +1~3） | 1 |
+| tokenizer（每串一次；无 /beta 时改 chat 仍 14 次） | 14 |
+| first_step | 4 |
+| continuation（4 裸续写 + 2 推理前缀） | 6 |
+| identity（派生组，不发请求） | 0 |
+| determinism | 2 |
+| **合计** | **34** |
+
+identity 是派生组：身份信号从所有成功的 chat/completions 响应里提取，所以它本身不占请求；只有 `--groups identity` 单独运行时才会临时发 2 个 chat 请求取样。
+
+前缀探测的 `GET /models` 会计入 `audit` 与 `cost.requests`，并被 metadata.models 探针复用，因此审计请求数 = 实际请求数（1.0.0 会把这次请求从审计里剔除，导致少算 1 个）。

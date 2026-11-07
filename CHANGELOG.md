@@ -3,6 +3,18 @@
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.0.1] - 2026-11-07
+
+### Fixed
+
+- 文档里的请求数账本：完整探测 **34** 个请求（identity 为派生组、不单独发请求；tokenizer 14、protocol 5、metadata 3），此前误写成 4~6/15/7/4，合计对不上。
+- 精简模式实测值更正：`--groups metadata,tokenizer` = **17**，加 identity 取样 = **19**（原文写 18）。
+- 前缀探测的 `GET /models` 不再从审计中剔除，改为被 metadata.models 探针复用：审计请求数现在等于真实请求数（1.0.0 少算 1 个）。
+
+### Changed
+
+- `TOOL_VERSION` → 1.0.1；完整探测仍为 34 个请求、~840 prompt token。
+
 ## [1.0.0] - 2026-11-07
 
 ### Added

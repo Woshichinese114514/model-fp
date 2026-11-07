@@ -12,7 +12,7 @@ import time
 from typing import Any, Dict, Optional
 
 SCHEMA = "model-fp/1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.0.1"
 
 
 def canonical(obj: Any) -> str:

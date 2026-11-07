@@ -444,6 +444,21 @@ def _candidates(probe: Dict[str, Any], prefix: str) -> List[str]:
 
 
 def _run_simple(ctx: _Ctx, probe: Dict[str, Any]) -> Dict[str, Any]:
+    # 前缀探测已经发过一次 GET /models，metadata.models 直接复用，避免多算一个请求
+    if probe["id"] == "metadata.models":
+        reuse = getattr(ctx.t, "discovery_response", None)
+        if reuse is not None:
+            ctx.observe(reuse)
+            data = _extract(probe["extract"], reuse, ctx.model)
+            data["path_used"] = reuse.url.replace(ctx.t.base_url, "")
+            return {
+                "id": probe["id"], "group": probe["group"],
+                "status": reuse.status, "ok": reuse.ok,
+                "expected_failure": bool(probe.get("expected_failure")),
+                "ms": round(reuse.elapsed_ms, 1), "data": data,
+                "reused": "prefix-discovery",
+            }
+
     body = _fill(probe.get("body"), ctx.model)
     last = None
     for path in _candidates(probe, ctx.t.prefix):

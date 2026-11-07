@@ -67,6 +67,8 @@ class Transport:
         self.user_agent = user_agent
         self.extra_headers = dict(extra_headers or {})
         self.prefix = ""  # API 前缀 "" 或 "/v1"，由 discover_prefix 决定
+        # 前缀探测时那次 GET /models 的响应，供 metadata.models 探针复用（避免重复请求）
+        self.discovery_response = None
         self.calls: List[Dict[str, Any]] = []
         self.spend = {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0}
 
@@ -89,8 +91,7 @@ class Transport:
             tried.append({"prefix": cand, "status": r.status})
             if r.ok and isinstance(r.body, dict) and isinstance(r.body.get("data"), list):
                 self.prefix = cand
-                self.calls.pop()  # 该请求由 probes 重新记录，避免重复计数
-                self.spend["requests"] -= 1
+                self.discovery_response = r  # 计入审计，metadata.models 直接复用
                 return tried[-1], tried
         self.prefix = ""
         return None, tried
